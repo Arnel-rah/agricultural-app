@@ -1,16 +1,20 @@
 package hei.school.agriculturalapp.service;
 
+import hei.school.agriculturalapp.dto.CreateCollectivity;
+import hei.school.agriculturalapp.dto.ValidationResult;
 import hei.school.agriculturalapp.model.Collectivity;
 import hei.school.agriculturalapp.model.CollectivityStructure;
 import hei.school.agriculturalapp.model.Member;
 import hei.school.agriculturalapp.repository.CollectivityRepository;
 import hei.school.agriculturalapp.repository.MemberRepository;
 import hei.school.agriculturalapp.validator.CollectivityValidator;
+import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class CollectivityService {
 
     private final CollectivityRepository collectivityRepository;
@@ -23,67 +27,40 @@ public class CollectivityService {
         this.validator = new CollectivityValidator(collectivityRepository, memberRepository);
     }
 
-    public List<Collectivity> createCollectivities(
-            List<String> locations,
-            List<List<String>> allMemberIds,
-            List<Boolean> federationApprovals,
-            List<String> presidentIds,
-            List<String> vicePresidentIds,
-            List<String> treasurerIds,
-            List<String> secretaryIds
-    ) throws SQLException {
-
+    public List<Collectivity> createCollectivities(List<CreateCollectivity> requests) throws SQLException {
         List<Collectivity> createdCollectivities = new ArrayList<>();
 
-        for (int i = 0; i < locations.size(); i++) {
-            Collectivity collectivity = createSingleCollectivity(
-                    locations.get(i),
-                    allMemberIds.get(i),
-                    federationApprovals.get(i),
-                    presidentIds.get(i),
-                    vicePresidentIds.get(i),
-                    treasurerIds.get(i),
-                    secretaryIds.get(i)
-            );
+        for (CreateCollectivity request : requests) {
+            Collectivity collectivity = createSingleCollectivity(request);
             createdCollectivities.add(collectivity);
         }
 
         return createdCollectivities;
     }
 
-    private Collectivity createSingleCollectivity(
-            String location,
-            List<String> memberIds,
-            Boolean federationApproval,
-            String presidentId,
-            String vicePresidentId,
-            String treasurerId,
-            String secretaryId
-    ) throws SQLException {
+    private Collectivity createSingleCollectivity(CreateCollectivity request) throws SQLException {
 
-        CollectivityValidator.ValidationResult validation = validator.validateCreateCollectivity(
-                location, memberIds, federationApproval, presidentId, vicePresidentId, treasurerId, secretaryId
-        );
+        ValidationResult validation = validator.validateCreateCollectivity(request);
 
         if (!validation.isValid()) {
             throw new IllegalArgumentException("Validation failed: " + validation.getErrorMessage());
         }
 
         Collectivity collectivity = new Collectivity();
-        collectivity.setLocation(location);
+        collectivity.setLocation(request.getLocation());
         Collectivity savedCollectivity = collectivityRepository.save(collectivity);
 
-        collectivityRepository.addMembersToCollectivity(savedCollectivity.getId(), memberIds);
+        collectivityRepository.addMembersToCollectivity(savedCollectivity.getId(), request.getMembers());
 
         int currentMandateId = collectivityRepository.getCurrentMandateId();
 
         collectivityRepository.assignRolesToCollectivity(
                 savedCollectivity.getId(),
                 currentMandateId,
-                presidentId,
-                vicePresidentId,
-                treasurerId,
-                secretaryId
+                request.getStructure().getPresident(),
+                request.getStructure().getVicePresident(),
+                request.getStructure().getTreasurer(),
+                request.getStructure().getSecretary()
         );
 
         List<Member> members = collectivityRepository.getMembersByCollectivityId(savedCollectivity.getId());
