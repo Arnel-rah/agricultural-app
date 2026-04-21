@@ -17,7 +17,8 @@ public class DatabaseConfig {
             String url = dotenv.get("DB_URL");
             String username = dotenv.get("DB_USERNAME");
             String password = dotenv.get("DB_PASSWORD");
-            return DriverManager.getConnection(url, username, password);
+           assert url != null;
+           return DriverManager.getConnection(url, username, password);
         } catch (Exception e) {
            throw new RuntimeException(e);
        }
