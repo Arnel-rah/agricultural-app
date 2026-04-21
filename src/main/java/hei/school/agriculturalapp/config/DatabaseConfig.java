@@ -1,14 +1,25 @@
 package hei.school.agriculturalapp.config;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.context.annotation.Configuration;
+
+
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.DriverManager;
 
+@Configuration
 public class DatabaseConfig {
+    Dotenv  dotenv = Dotenv.load();
 
-    private String driverClassName;
-    private String url;
-    private String username;
-    private String password;
-
-    public DataSource dataSource() {
+    public Connection dataSource() {
+       try {
+            String url = dotenv.get("DB_URL");
+            String username = dotenv.get("DB_USERNAME");
+            String password = dotenv.get("DB_PASSWORD");
+            return DriverManager.getConnection(url, username, password);
+        } catch (Exception e) {
+           throw new RuntimeException(e);
+       }
     }
 }
