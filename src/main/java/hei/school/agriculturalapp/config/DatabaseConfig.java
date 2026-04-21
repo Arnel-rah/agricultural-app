@@ -14,7 +14,7 @@ public class DatabaseConfig {
     Dotenv  dotenv = Dotenv.load();
 
     @Bean
-    public Connection dataSource() {
+    public Connection getConnection() {
        try {
             String url = dotenv.get("DB_URL");
             String username = dotenv.get("DB_USERNAME");
