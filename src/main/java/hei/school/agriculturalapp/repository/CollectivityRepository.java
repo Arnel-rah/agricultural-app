@@ -39,7 +39,7 @@ public class CollectivityRepository {
     }
 
     public Optional<Collectivity> findById(String id) throws SQLException {
-        String sql = "SELECT * FROM collectivity WHERE id = ?";
+        String sql = "SELECT id, location, name, agricultural_specialty, registration_number, creation_date, federation_approval, federation_id, created_at, updated_at FROM collectivity WHERE id = ?";
 
         try (PreparedStatement stmt = dbconfig.connection().prepareStatement(sql)) {
             stmt.setInt(1, Integer.parseInt(id));
@@ -50,6 +50,19 @@ public class CollectivityRepository {
             }
         }
         return Optional.empty();
+    }
+
+    public List<Collectivity> findAll() throws SQLException {
+        List<Collectivity> collectivities = new ArrayList<>();
+        String sql = "SELECT id, location, name, agricultural_specialty, registration_number, creation_date, federation_approval, federation_id, created_at, updated_at FROM collectivity";
+
+        try (Statement stmt = dbconfig.connection().createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                collectivities.add(mapToCollectivity(rs));
+            }
+        }
+        return collectivities;
     }
 
     public void addMembersToCollectivity(String collectivityId, List<String> memberIds) throws SQLException {
@@ -69,28 +82,28 @@ public class CollectivityRepository {
         String sql = "INSERT INTO assignment (member_id, role_id, mandate_id, collectivity_id) VALUES (?, (SELECT id FROM role WHERE name = ?), ?, ?)";
 
         try (PreparedStatement stmt = dbconfig.connection().prepareStatement(sql)) {
-            if (presidentId != null) {
+            if (presidentId != null && !presidentId.isEmpty()) {
                 stmt.setInt(1, Integer.parseInt(presidentId));
                 stmt.setString(2, "PRESIDENT");
                 stmt.setInt(3, mandateId);
                 stmt.setInt(4, Integer.parseInt(collectivityId));
                 stmt.addBatch();
             }
-            if (vicePresidentId != null) {
+            if (vicePresidentId != null && !vicePresidentId.isEmpty()) {
                 stmt.setInt(1, Integer.parseInt(vicePresidentId));
                 stmt.setString(2, "VICE_PRESIDENT");
                 stmt.setInt(3, mandateId);
                 stmt.setInt(4, Integer.parseInt(collectivityId));
                 stmt.addBatch();
             }
-            if (treasurerId != null) {
+            if (treasurerId != null && !treasurerId.isEmpty()) {
                 stmt.setInt(1, Integer.parseInt(treasurerId));
                 stmt.setString(2, "TREASURER");
                 stmt.setInt(3, mandateId);
                 stmt.setInt(4, Integer.parseInt(collectivityId));
                 stmt.addBatch();
             }
-            if (secretaryId != null) {
+            if (secretaryId != null && !secretaryId.isEmpty()) {
                 stmt.setInt(1, Integer.parseInt(secretaryId));
                 stmt.setString(2, "SECRETARY");
                 stmt.setInt(3, mandateId);
@@ -103,13 +116,15 @@ public class CollectivityRepository {
 
     public List<Member> getMembersByCollectivityId(String collectivityId) throws SQLException {
         List<Member> members = new ArrayList<>();
-        String sql = "SELECT m.id, m.first_name, m.last_name, m.birth_date, m.gender, m.address, m.profession, m.phone_number, m.email FROM member m JOIN membership ms ON ms.member_id = m.id WHERE ms.collectivity_id = ?";
+        String sql = "SELECT m.id, m.first_name, m.last_name, m.birth_date, m.gender, m.address, m.profession, m.phone_number, m.email, m.occupation FROM member m JOIN membership ms ON ms.member_id = m.id WHERE ms.collectivity_id = ?";
 
         try (PreparedStatement stmt = dbconfig.connection().prepareStatement(sql)) {
             stmt.setInt(1, Integer.parseInt(collectivityId));
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    members.add(mapToMember(rs));
+                    Member member = mapToMember(rs);
+                    member.setReferees(new ArrayList<>());
+                    members.add(member);
                 }
             }
         }
@@ -117,7 +132,7 @@ public class CollectivityRepository {
     }
 
     public CollectivityStructure getCollectivityStructure(String collectivityId, int mandateId) throws SQLException {
-        String sql = "SELECT m.id, m.first_name, m.last_name, m.birth_date, m.gender, m.address, m.profession, m.phone_number, m.email, r.name as role_name FROM assignment a JOIN member m ON m.id = a.member_id JOIN role r ON r.id = a.role_id WHERE a.collectivity_id = ? AND a.mandate_id = ?";
+        String sql = "SELECT m.id, m.first_name, m.last_name, m.birth_date, m.gender, m.address, m.profession, m.phone_number, m.email, m.occupation, r.name as role_name FROM assignment a JOIN member m ON m.id = a.member_id JOIN role r ON r.id = a.role_id WHERE a.collectivity_id = ? AND a.mandate_id = ?";
 
         Member president = null;
         Member vicePresident = null;
@@ -131,6 +146,7 @@ public class CollectivityRepository {
                 while (rs.next()) {
                     String roleName = rs.getString("role_name");
                     Member member = mapToMember(rs);
+                    member.setReferees(new ArrayList<>());
                     switch (roleName) {
                         case "PRESIDENT": president = member; break;
                         case "VICE_PRESIDENT": vicePresident = member; break;
@@ -193,7 +209,7 @@ public class CollectivityRepository {
     }
 
     public int getSeniorMemberCountByCollectivityId(String collectivityId) throws SQLException {
-        String sql = "SELECT COUNT(DISTINCT ms.member_id) FROM membership ms JOIN member m ON m.id = ms.member_id WHERE ms.collectivity_id = ? AND m.join_date <= CURRENT_DATE - INTERVAL '6 months'";
+        String sql = "SELECT COUNT(DISTINCT ms.member_id) FROM membership ms JOIN member m ON m.id = ms.member_id WHERE ms.collectivity_id = ? AND m.join_date <= CURRENT_DATE - INTERVAL '6 months' AND m.occupation = 'SENIOR'";
         try (PreparedStatement stmt = dbconfig.connection().prepareStatement(sql)) {
             stmt.setInt(1, Integer.parseInt(collectivityId));
             try (ResultSet rs = stmt.executeQuery()) {
@@ -212,7 +228,7 @@ public class CollectivityRepository {
 
     private Member mapToMember(ResultSet rs) throws SQLException {
         Member member = new Member();
-        member.setId(Integer.valueOf(String.valueOf(rs.getInt("id"))));
+        member.setId(rs.getInt("id"));
         member.setFirstName(rs.getString("first_name"));
         member.setLastName(rs.getString("last_name"));
         Date birthDate = rs.getDate("birth_date");
@@ -220,8 +236,9 @@ public class CollectivityRepository {
         member.setGender(rs.getString("gender"));
         member.setAddress(rs.getString("address"));
         member.setProfession(rs.getString("profession"));
-        member.setPhoneNumber(String.valueOf(rs.getInt("phone_number")));
+        member.setPhoneNumber(rs.getString("phone_number"));
         member.setEmail(rs.getString("email"));
+        member.setOccupation(rs.getString("occupation"));
         return member;
     }
 }

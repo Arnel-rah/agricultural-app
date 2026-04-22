@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS member
     address               TEXT,
     profession            VARCHAR(255),
     phone_number          VARCHAR(20)  NOT NULL,
-    email                 VARCHAR(255),
+    email                 VARCHAR(255) UNIQUE,
+    occupation            VARCHAR(50),
     join_date             DATE         NOT NULL DEFAULT CURRENT_DATE,
     registration_fee_paid BOOLEAN      NOT NULL DEFAULT FALSE,
     membership_dues_paid  BOOLEAN      NOT NULL DEFAULT FALSE,
@@ -55,7 +56,7 @@ CREATE TABLE IF NOT EXISTS sponsorship
     id                      SERIAL PRIMARY KEY,
     member_id               INTEGER     NOT NULL REFERENCES member (id) ON DELETE CASCADE,
     sponsor_member_id       INTEGER     NOT NULL REFERENCES member (id) ON DELETE RESTRICT,
-    sponsor_collectivity_id INTEGER     NOT NULL REFERENCES collectivity (id) ON DELETE RESTRICT,
+    sponsor_collectivity_id INTEGER     REFERENCES collectivity (id) ON DELETE RESTRICT,
     relationship            VARCHAR(50) NOT NULL CHECK (relationship IN ('FAMILY', 'FRIENDS', 'COLLEAGUES', 'OTHER')),
     created_at              TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (member_id, sponsor_member_id)

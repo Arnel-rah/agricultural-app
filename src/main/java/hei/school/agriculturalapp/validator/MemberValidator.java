@@ -47,6 +47,13 @@ public class MemberValidator {
             result.addError("membershipDuesPaid", "Membership dues must be paid");
         }
 
+        // Correction : utiliser request.getEmail() au lieu de member.getEmail()
+        if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+            if (memberRepository.existsByEmail(request.getEmail())) {
+                result.addError("email", "Member with email " + request.getEmail() + " already exists");
+            }
+        }
+
         if ("JUNIOR".equals(request.getOccupation())) {
             if (request.getReferees() == null || request.getReferees().size() < 2) {
                 result.addError("referees", "At least 2 referees required for junior member");
