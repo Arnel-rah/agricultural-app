@@ -25,10 +25,10 @@ public class CollectivityValidator {
             return result;
         }
 
-        if (request.getFederationApproval() == null || !request.getFederationApproval()) {
-            result.addError("federationApproval", "Collectivity without federation approval");
-            return result;
-        }
+//        if (request.getFederationApproval() == null || !request.getFederationApproval()) {
+//            result.addError("federationApproval", "Collectivity without federation approval");
+//            return result;
+//        }
 
         if (request.getLocation() == null || request.getLocation().trim().isEmpty()) {
             result.addError("location", "Location is required");
