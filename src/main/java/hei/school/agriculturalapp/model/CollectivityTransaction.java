@@ -1,9 +1,16 @@
 package hei.school.agriculturalapp.model;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDate;
 
-@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class CollectivityTransaction {
     private String id;
     private LocalDate creationDate;
