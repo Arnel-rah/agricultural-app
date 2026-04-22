@@ -272,7 +272,7 @@ public class CollectivityRepository {
 
         FinancialAccount acc = new FinancialAccount();
         acc.setId(String.valueOf(rs.getInt("acc_id")));
-        acc.setAmount(String.valueOf(rs.getDouble("acc_balance")));
+        acc.setAmount(Double.valueOf(String.valueOf(rs.getDouble("acc_balance"))));
         tx.setAccountCredited(acc);
         Member member = new Member();
         member.setId(rs.getInt("mem_id"));
