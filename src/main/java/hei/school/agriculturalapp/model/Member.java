@@ -25,7 +25,7 @@ public class Member {
     private String email;
     private String address;
     private String occupation;
-    private List<Member> referees;
+    private List<String> referees;
 
 
     @JsonIgnore
