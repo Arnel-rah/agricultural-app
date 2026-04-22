@@ -12,4 +12,6 @@ public class CreateCollectivity {
     private List<String> members;
     private Boolean federationApproval;
     private CreateCollectivityStructure structure;
+    private String uniqueName;
+    private String officialNumber;
 }

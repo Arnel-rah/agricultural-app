@@ -37,4 +37,27 @@ public class CollectivityController {
                     .body(Map.of("error", "Internal server error: " + e.getMessage()));
         }
     }
+
+    @PatchMapping("/{id}/identification")
+    public ResponseEntity<?> identify(
+            @PathVariable String id,
+            @RequestBody Collectivity request) {
+        try {
+            Collectivity updated = collectivityService.assignOfficialIdentification(
+                    id,
+                    request.getUniqueName(),
+                    request.getOfficialNumber()
+            );
+            return ResponseEntity.ok(updated);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Unexpected error: " + e.getMessage()));
+        }
+    }
 }

@@ -16,4 +16,6 @@ public class Collectivity {
     private String location;
     private CollectivityStructure structure;
     private List<Member> members;
+    private String uniqueName;
+    private String officialNumber;
 }
