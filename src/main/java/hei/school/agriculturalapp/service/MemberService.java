@@ -47,8 +47,15 @@ public class MemberService {
         Member savedMember = memberRepository.save(member);
 
         if (request.getReferees() != null && !request.getReferees().isEmpty()) {
+            List<String> refereeNames = new ArrayList<>();
             List<Member> referees = memberRepository.getMembersByIds(request.getReferees());
-            savedMember.setReferees(referees);
+            for (Member referee : referees) {
+                // Stocker juste "Prénom Nom"
+                refereeNames.add(referee.getFirstName() + " " + referee.getLastName());
+            }
+            savedMember.setReferees(refereeNames);
+        } else {
+            savedMember.setReferees(new ArrayList<>());
         }
 
         return savedMember;
