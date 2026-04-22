@@ -1,54 +1,56 @@
 package hei.school.agriculturalapp.service;
 
-import hei.school.agriculturalapp.exception.BadRequestException;
+import hei.school.agriculturalapp.dto.CreateMember;
+import hei.school.agriculturalapp.dto.ValidationResult;
 import hei.school.agriculturalapp.model.Member;
 import hei.school.agriculturalapp.repository.MemberRepository;
 import hei.school.agriculturalapp.validator.MemberValidator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final MemberValidator memberValidator;
-    private final Connection connection;
+    private final MemberValidator validator;
 
-    public MemberService(MemberRepository memberRepository,
-                         MemberValidator memberValidator,
-                         Connection connection) {
-        this.memberRepository = memberRepository;
-        this.memberValidator = memberValidator;
-        this.connection = connection;
+    public List<Member> createMembers(List<CreateMember> requests) throws SQLException {
+        List<Member> createdMembers = new ArrayList<>();
+        for (CreateMember request : requests) {
+            createdMembers.add(createSingleMember(request));
+        }
+        return createdMembers;
     }
 
-    public List<Member> saveAll(List<Member> members) throws BadRequestException, SQLException {
-        memberValidator.validate(members);
-        connection.setAutoCommit(false);
+    private Member createSingleMember(CreateMember request) throws SQLException {
+        ValidationResult validation = validator.validate(request);
+        if (!validation.isValid()) {
+            throw new IllegalArgumentException("Validation failed: " + validation.getErrorMessage());
+        }
 
-        for (Member member : members) {
-            this.checkBusinessRules(member);
-            int id = memberRepository.save(member, connection);
-            member.setId(id);
-            if (member.getRefereeIds() != null) {
-                for (Integer refereeId : member.getRefereeIds()) {
-                    memberRepository.saveSponsorship(id, refereeId, connection);
-                }
-            }
-        }
-        connection.commit();
-        return members;
-    }
+        Member member = new Member();
+        member.setFirstName(request.getFirstName());
+        member.setLastName(request.getLastName());
+        member.setBirthDate(request.getBirthDate());
+        member.setGender(request.getGender());
+        member.setAddress(request.getAddress());
+        member.setProfession(request.getProfession());
+        member.setPhoneNumber(String.valueOf(request.getPhoneNumber()));
+        member.setEmail(request.getEmail());
+        member.setOccupation(request.getOccupation());
 
-    private void checkBusinessRules(Member member) throws BadRequestException {
-        if (!member.isRegistrationFeePaid() || !member.isMembershipDuesPaid()) {
-            throw new BadRequestException("Fees must be paid for: " + member.getLastName());
+        Member savedMember = memberRepository.save(member);
+
+        if (request.getReferees() != null && !request.getReferees().isEmpty()) {
+            List<Member> referees = memberRepository.getMembersByIds(request.getReferees());
+            savedMember.setReferees(referees);
         }
-        if (member.getRefereeIds() == null || member.getRefereeIds().size() < 2) {
-            throw new BadRequestException("At least 2 referees required for: " + member.getLastName());
-        }
+
+        return savedMember;
     }
 }

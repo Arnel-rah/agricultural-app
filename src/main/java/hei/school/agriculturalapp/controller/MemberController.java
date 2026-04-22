@@ -1,6 +1,6 @@
 package hei.school.agriculturalapp.controller;
 
-import hei.school.agriculturalapp.exception.BadRequestException;
+import hei.school.agriculturalapp.dto.CreateMember;
 import hei.school.agriculturalapp.model.Member;
 import hei.school.agriculturalapp.service.MemberService;
 import org.springframework.http.HttpStatus;
@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/members")
@@ -21,22 +22,19 @@ public class MemberController {
     }
 
     @PostMapping
-    public ResponseEntity<?> saveAll(@RequestBody List<Member> members) {
+    public ResponseEntity<?> createMembers(@RequestBody List<CreateMember> requests) {
         try {
-            List<Member> createdMembers = memberService.saveAll(members);
-            return new ResponseEntity<>(createdMembers, HttpStatus.CREATED);
-
-        } catch (BadRequestException e) {
+            List<Member> createdMembers = memberService.createMembers(requests);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdMembers);
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(e.getMessage());
-
+                    .body(Map.of("error", e.getMessage()));
         } catch (SQLException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Database error: " + e.getMessage());
-
+                    .body(Map.of("error", "Database error: " + e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An unexpected error occurred.");
+                    .body(Map.of("error", "An unexpected error occurred."));
         }
     }
 }

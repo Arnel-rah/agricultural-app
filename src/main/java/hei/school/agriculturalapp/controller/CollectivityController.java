@@ -3,7 +3,6 @@ package hei.school.agriculturalapp.controller;
 import hei.school.agriculturalapp.dto.CreateCollectivity;
 import hei.school.agriculturalapp.model.Collectivity;
 import hei.school.agriculturalapp.service.CollectivityService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,17 +13,19 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/collectivities")
-@RequiredArgsConstructor
 public class CollectivityController {
 
     private final CollectivityService collectivityService;
+
+    public CollectivityController(CollectivityService collectivityService) {
+        this.collectivityService = collectivityService;
+    }
 
     @PostMapping
     public ResponseEntity<?> createCollectivities(@RequestBody List<CreateCollectivity> requests) {
         try {
             List<Collectivity> createdCollectivities = collectivityService.createCollectivities(requests);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdCollectivities);
-
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));
