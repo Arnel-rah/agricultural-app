@@ -162,6 +162,22 @@ CREATE TABLE IF NOT EXISTS member_payment
     updated_at              TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS collectivity_transaction
+(
+    id                      SERIAL PRIMARY KEY,
+    collectivity_id         INTEGER NOT NULL REFERENCES collectivity (id) ON DELETE CASCADE,
+    member_id               INTEGER NOT NULL REFERENCES member (id) ON DELETE RESTRICT,
+    membership_fee_id       INTEGER NOT NULL REFERENCES membership_fee (id) ON DELETE RESTRICT,
+    financial_account_id    INTEGER NOT NULL REFERENCES financial_account (id) ON DELETE RESTRICT,
+    amount                  DECIMAL(12, 2) NOT NULL CHECK (amount > 0),
+    payment_mode            VARCHAR(20) NOT NULL CHECK (payment_mode IN ('CASH', 'MOBILE_BANKING', 'BANK_TRANSFER')),
+    payment_date            DATE NOT NULL DEFAULT CURRENT_DATE,
+    status                  VARCHAR(20) NOT NULL DEFAULT 'COMPLETED' CHECK (status IN ('PENDING', 'COMPLETED', 'FAILED')),
+    transaction_reference   VARCHAR(255),
+    created_at              TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at              TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_membership_fee_collectivity ON membership_fee(collectivity_id);
 CREATE INDEX IF NOT EXISTS idx_financial_account_collectivity ON financial_account(collectivity_id);
 CREATE INDEX IF NOT EXISTS idx_transaction_collectivity ON collectivity_transaction(collectivity_id);
