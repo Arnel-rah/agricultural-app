@@ -98,4 +98,13 @@ public class CollectivityValidator {
 
         return result;
     }
+
+    public void validateIdentification(String name, String number) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Unique name is required for identification");
+        }
+        if (number == null || number.trim().isEmpty()) {
+            throw new IllegalArgumentException("Official number is required for identification");
+        }
+    }
 }
