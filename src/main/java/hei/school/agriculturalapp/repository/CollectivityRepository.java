@@ -88,6 +88,22 @@ public class CollectivityRepository {
         return false;
     }
 
+    public boolean existsById(String id) throws SQLException {
+        if (id == null || id.trim().isEmpty()) {
+            return false;
+        }
+
+        String sql = "SELECT 1 FROM collectivity WHERE id = ?";
+        try (PreparedStatement stmt = dbconfig.connection().prepareStatement(sql)) {
+            stmt.setInt(1, Integer.parseInt(id));
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
     public Optional<Collectivity> findById(String id) throws SQLException {
         String sql = "SELECT * FROM collectivity WHERE id = ?";
 
