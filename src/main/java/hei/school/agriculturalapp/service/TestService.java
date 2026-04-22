@@ -19,7 +19,7 @@ public class TestService {
     public List<Test> getTests() {
         String query = "select * from test";
         List<Test> tests = new ArrayList<>();
-        try (Connection c = dbconfig.getConnection();
+        try (Connection c = dbconfig.connection();
              PreparedStatement pr = c.prepareStatement(query);
              ResultSet rs = pr.executeQuery();
                 ){
