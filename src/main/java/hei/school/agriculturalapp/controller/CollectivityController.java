@@ -66,4 +66,10 @@ public class CollectivityController {
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getCollectivityById(@PathVariable String id) {
+        return collectivityService.getDetailedById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }

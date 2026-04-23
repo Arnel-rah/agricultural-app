@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -74,5 +75,14 @@ public class CollectivityService {
         }
 
         return collectivityRepository.updateIdentification(id, uniqueName, officialNumber);
+    }
+
+    public Optional<Collectivity> getDetailedById(String id) {
+        try {
+            return collectivityRepository.findDetailedById(id);
+        } catch (SQLException e) {
+            System.err.println("Error while retrieving collectivity with ID " + id + ": " + e.getMessage());
+            return Optional.empty();
+        }
     }
 }
