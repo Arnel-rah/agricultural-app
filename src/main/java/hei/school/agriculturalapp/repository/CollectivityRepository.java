@@ -1,13 +1,12 @@
 package hei.school.agriculturalapp.repository;
 
 import hei.school.agriculturalapp.config.DatabaseConfig;
-import hei.school.agriculturalapp.model.Collectivity;
-import hei.school.agriculturalapp.model.CollectivityStructure;
-import hei.school.agriculturalapp.model.Member;
+import hei.school.agriculturalapp.model.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -87,6 +86,22 @@ public class CollectivityRepository {
             }
         }
         return false;
+    }
+
+    public boolean existsById(String id) throws SQLException {
+        if (id == null || id.trim().isEmpty()) {
+            return false;
+        }
+
+        String sql = "SELECT 1 FROM collectivity WHERE id = ?";
+        try (PreparedStatement stmt = dbconfig.connection().prepareStatement(sql)) {
+            stmt.setInt(1, Integer.parseInt(id));
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     public Optional<Collectivity> findById(String id) throws SQLException {
@@ -216,5 +231,64 @@ public class CollectivityRepository {
         member.setPhoneNumber(String.valueOf(rs.getLong("phone_number")));
         member.setEmail(rs.getString("email"));
         return member;
+    }
+
+    public List<CollectivityTransaction> getTransactions(String id, LocalDate from, LocalDate to) throws SQLException {
+        List<CollectivityTransaction> transactions = new ArrayList<>();
+        String sql = """
+        SELECT t.id AS tx_id, t.creation_date AS tx_date, t.amount AS tx_amount, t.payment_mode AS tx_mode,
+               fa.id AS acc_id, fa.balance AS acc_balance,
+               m.id AS mem_id, m.first_name, m.last_name, m.birth_date, m.gender, 
+               m.address, m.profession, m.phone_number, m.email, m.occupation
+        FROM collectivity_transaction t
+        JOIN member m ON t.member_id = m.id
+        JOIN financial_account fa ON t.account_id = fa.id
+        WHERE t.collectivity_id = ? 
+          AND t.creation_date >= ? 
+          AND t.creation_date <= ?
+        ORDER BY t.creation_date DESC
+        """;
+
+        try (PreparedStatement stmt = dbconfig.connection().prepareStatement(sql)) {
+            stmt.setInt(1, Integer.parseInt(id));
+            stmt.setDate(2, Date.valueOf(from));
+            stmt.setDate(3, Date.valueOf(to));
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    transactions.add(mapToTransaction(rs));
+                }
+            }
+        }
+        return transactions;
+    }
+
+    private CollectivityTransaction mapToTransaction(ResultSet rs) throws SQLException {
+        CollectivityTransaction tx = new CollectivityTransaction();
+        tx.setId(rs.getString("tx_id"));
+        tx.setCreationDate(rs.getTimestamp("tx_date").toLocalDateTime().toLocalDate());
+        tx.setAmount(rs.getDouble("tx_amount"));
+        tx.setPaymentMode(rs.getString("tx_mode"));
+
+        FinancialAccount acc = new FinancialAccount();
+        acc.setId(String.valueOf(rs.getInt("acc_id")));
+        acc.setAmount(Double.valueOf(String.valueOf(rs.getDouble("acc_balance"))));
+        tx.setAccountCredited(acc);
+        Member member = new Member();
+        member.setId(rs.getInt("mem_id"));
+        member.setFirstName(rs.getString("first_name"));
+        member.setLastName(rs.getString("last_name"));
+        Date birthDate = rs.getDate("birth_date");
+        if (birthDate != null) member.setBirthDate(birthDate.toLocalDate());
+        member.setGender(rs.getString("gender"));
+        member.setAddress(rs.getString("address"));
+        member.setProfession(rs.getString("profession"));
+        member.setPhoneNumber(rs.getString("phone_number"));
+        member.setEmail(rs.getString("email"));
+        member.setOccupation(rs.getString("occupation"));
+
+        tx.setMemberDebited(member);
+
+        return tx;
     }
 }

@@ -69,9 +69,6 @@ public class CollectivityService {
     public Collectivity assignOfficialIdentification(String id, String uniqueName, String officialNumber) throws SQLException {
         Collectivity col = collectivityRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Collectivity not found"));
-        if (col.getUniqueName() != null || col.getOfficialNumber() != null) {
-            throw new IllegalStateException("Identification is immutable and cannot be changed once set.");
-        }
         if (collectivityRepository.existsByUniqueName(uniqueName)) {
             throw new IllegalArgumentException("The unique name '" + uniqueName + "' is already taken.");
         }
