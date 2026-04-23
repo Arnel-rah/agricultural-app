@@ -22,28 +22,33 @@ public class CollectivityTransactionRepository {
             String collectivityId, LocalDate from, LocalDate to) throws SQLException {
 
         List<CollectivityTransaction> transactions = new ArrayList<>();
-        String sql = "SELECT ct.id, ct.amount, ct.payment_mode, ct.payment_date, " +
-                "m.id as member_id, m.first_name, m.last_name, m.birth_date, m.gender, " +
-                "m.address, m.profession, m.phone_number, m.email, m.occupation, " +
-                "fa.id as account_id, fa.holder_name, fa.mobile_banking_service, " +
-                "fa.mobile_number, fa.amount as account_amount " +
-                "FROM collectivity_transaction ct " +
-                "JOIN member m ON m.id = ct.member_id " +
-                "JOIN financial_account fa ON fa.id = ct.financial_account_id " +
-                "WHERE ct.collectivity_id = ? AND ct.payment_date BETWEEN ? AND ? " +
-                "ORDER BY ct.payment_date DESC";
+        String sql = """
+                SELECT ct.id, ct.amount, ct.payment_mode, ct.creation_date, 
+                       m.id as member_id, m.first_name, m.last_name, m.birth_date, m.gender, 
+                       m.address, m.profession, m.phone_number, m.email, m.occupation, 
+                       fa.id as acc_id, fa.balance as acc_balance
+                FROM collectivity_transaction ct 
+                JOIN member m ON m.id = ct.member_id 
+                JOIN financial_account fa ON fa.id = ct.account_id 
+                WHERE ct.collectivity_id = ? AND ct.creation_date BETWEEN ? AND ? 
+                ORDER BY ct.creation_date DESC
+                """;
 
-        try (PreparedStatement stmt = dbconfig.connection().prepareStatement(sql)) {
-            stmt.setInt(1, Integer.parseInt(collectivityId));
-            stmt.setDate(2, Date.valueOf(from));
-            stmt.setDate(3, Date.valueOf(to));
+        Connection connection = dbconfig.connection();
+        PreparedStatement stmt = connection.prepareStatement(sql);
 
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    transactions.add(mapToTransaction(rs));
-                }
-            }
+        stmt.setInt(1, Integer.parseInt(collectivityId));
+        stmt.setDate(2, Date.valueOf(from));
+        stmt.setDate(3, Date.valueOf(to));
+
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+            transactions.add(mapToTransaction(rs));
         }
+
+        rs.close();
+        stmt.close();
+
         return transactions;
     }
 
@@ -52,24 +57,21 @@ public class CollectivityTransactionRepository {
         transaction.setId(String.valueOf(rs.getInt("id")));
         transaction.setAmount(rs.getDouble("amount"));
         transaction.setPaymentMode(rs.getString("payment_mode"));
-        transaction.setCreationDate(rs.getDate("payment_date").toLocalDate());
+        transaction.setCreationDate(rs.getDate("creation_date").toLocalDate());
 
-        // Account credited
         FinancialAccount account = new FinancialAccount();
-        account.setId(String.valueOf(rs.getInt("account_id")));
-        account.setHolderName(rs.getString("holder_name"));
-        account.setMobileBankingService(rs.getString("mobile_banking_service"));
-        account.setMobileNumber(rs.getString("mobile_number"));
-        account.setAmount(rs.getDouble("account_amount"));
+        account.setId(rs.getString("acc_id"));
+        account.setAmount(rs.getDouble("acc_balance"));
         transaction.setAccountCredited(account);
 
-        // Member debited
         Member member = new Member();
         member.setId(rs.getInt("member_id"));
         member.setFirstName(rs.getString("first_name"));
         member.setLastName(rs.getString("last_name"));
         Date birthDate = rs.getDate("birth_date");
-        if (birthDate != null) member.setBirthDate(birthDate.toLocalDate());
+        if (birthDate != null) {
+            member.setBirthDate(birthDate.toLocalDate());
+        }
         member.setGender(rs.getString("gender"));
         member.setAddress(rs.getString("address"));
         member.setProfession(rs.getString("profession"));

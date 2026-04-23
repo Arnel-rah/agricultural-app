@@ -16,22 +16,17 @@ import java.util.Optional;
 public class CollectivityRepository {
     private final DatabaseConfig dbconfig;
 
-    // --- NOUVELLE MÉTHODE : GET /collectivities/{id} ---
     public Optional<Collectivity> findDetailedById(String id) throws SQLException {
         Optional<Collectivity> collectivityOpt = findById(id);
 
         if (collectivityOpt.isPresent()) {
             Collectivity collectivity = collectivityOpt.get();
-
-            // 1. Récupération des membres associés
             collectivity.setMembers(getMembersByCollectivityId(id));
 
-            // 2. Récupération de la structure (rôles) pour le mandat actuel
             try {
                 int mandateId = getCurrentMandateId();
                 collectivity.setStructure(getCollectivityStructure(id, mandateId));
             } catch (SQLException e) {
-                // Si pas de mandat ou structure, on laisse l'objet structure tel quel
             }
 
             return Optional.of(collectivity);
