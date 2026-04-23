@@ -7,7 +7,7 @@ info:
     \ : PUT /collectivities/{id}/informations for collectivity information update.\n\
     - v0.0.3 (2026-04-23) : New features about membership fees, collectivities transactions\
     \ and its financial accounts, and members payments.\n"
-  version: 0.0.1
+  version: 0.0.3
 servers:
   - url: https://localhost:8080
 paths:
@@ -37,6 +37,27 @@ paths:
           description: Collectivity without federation approval or structure missing.
         "404":
           description: Member not found.
+
+  /collectivities/{id}:
+    get:
+      summary: Retrieve a specific collectivity with its members
+      description: Returns detailed information of a collectivity, including the list of registered members.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: Detailed collectivity information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Collectivity"
+        "404":
+          description: Collectivity not found.
+
   /collectivities/{id}/informations:
     put:
       summary: Attribute collectivity informations to specific collectivity
@@ -62,6 +83,7 @@ paths:
           description: Either given number or name is already used by other collectivity.
         "404":
           description: Collectivity not found.
+
   /collectivities/{id}/membershipFees:
     get:
       summary: Retrieve collectivity membership fees
@@ -110,11 +132,39 @@ paths:
           description: Either unrecognized frequency or amount under 0.
         "404":
           description: Collectivity not found.
+
+  /collectivities/{id}/financialAccounts:
+    get:
+      summary: Retrieve collectivity financial accounts with balance
+      description: Returns accounts (Cash, Mobile, Bank) with balance at a given date.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: at
+          description: Date to calculate the account balance at.
+          schema:
+            type: string
+            format: date
+          required: false
+      responses:
+        "200":
+          description: List of financial accounts and their balances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FinancialAccount"
+        "404":
+          description: Collectivity not found.
+
   /collectivities/{id}/transactions:
     get:
       summary: Retrieve specific collectivity transactions for a given period
-      description: |
-        Query parameters `from` and `to` are mandatory to filters collectivity transactions.
       parameters:
         - in: path
           name: id
@@ -135,17 +185,16 @@ paths:
           required: true
       responses:
         "200":
-          description: List of collectivity transactions between provided dates
+          description: List of collectivity transactions
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/CollectivityTransaction"
-        "400":
-          description: Provided query parameters occur some exceptions.
         "404":
           description: Collectivity not found.
+
   /members:
     post:
       summary: Create list of members
@@ -165,17 +214,10 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Member"
-        "400":
-          description: "The following case must return a bad request exception : \n\
-            - Member with bad referees or without proper payment.\n- Membership dues\
-            \ not paid or registration fee not paid.\n"
-        "404":
-          description: Either collectivity or member not found.
+
   /members/{id}/payments:
     post:
       summary: Create some payments for given member
-      description: |
-        Each time a member create a payment, a transaction is store automatically inside collectivities transactions.
       parameters:
         - in: path
           name: id
@@ -198,6 +240,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/MemberPayment"
+
 components:
   schemas:
     CreateCollectivity:
@@ -208,12 +251,12 @@ components:
         members:
           type: array
           items:
-            schema:
-              $ref: "#/components/schemas/MemberIdentifier"
+            $ref: "#/components/schemas/MemberIdentifier"
         federationApproval:
           type: boolean
         structure:
           $ref: "#/components/schemas/CreateCollectivityStructure"
+
     CreateCollectivityStructure:
       type: object
       properties:
@@ -225,6 +268,7 @@ components:
           $ref: "#/components/schemas/MemberIdentifier"
         secretary:
           $ref: "#/components/schemas/MemberIdentifier"
+
     CollectivityStructure:
       type: object
       properties:
@@ -236,13 +280,15 @@ components:
           $ref: "#/components/schemas/Member"
         secretary:
           $ref: "#/components/schemas/Member"
+
     CollectivityInformation:
       type: object
       properties:
         name:
           type: string
         number:
-          type: int
+          type: integer
+
     Collectivity:
       type: object
       allOf:
@@ -258,8 +304,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Member"
+
     MemberIdentifier:
       type: string
+
     CreateMember:
       type: object
       allOf:
@@ -275,6 +323,7 @@ components:
           type: boolean
         membershipDuesPaid:
           type: boolean
+
     MemberInformation:
       type: object
       properties:
@@ -292,11 +341,12 @@ components:
         profession:
           type: string
         phoneNumber:
-          type: int
+          type: integer
         email:
           type: string
         occupation:
           $ref: "#/components/schemas/MemberOccupation"
+
     Member:
       type: object
       allOf:
@@ -308,6 +358,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Member"
+
     CreateMembershipFee:
       type: object
       properties:
@@ -320,6 +371,7 @@ components:
           type: number
         label:
           type: string
+
     MembershipFee:
       allOf:
         - $ref: "#/components/schemas/CreateMembershipFee"
@@ -329,23 +381,26 @@ components:
           type: string
         status:
           $ref: "#/components/schemas/ActivityStatus"
+
     CreateMemberPayment:
       type: object
       properties:
         amount:
-          type: int
+          type: integer
         membershipFeeIdentifier:
           type: string
         accountCreditedIdentifier:
           type: string
         paymentMode:
           $ref: "#/components/schemas/PaymentMode"
+
     MemberPayment:
+      type: object
       properties:
         id:
           type: string
         amount:
-          type: int
+          type: integer
         paymentMode:
           $ref: "#/components/schemas/PaymentMode"
         accountCredited:
@@ -353,18 +408,21 @@ components:
         creationDate:
           type: string
           format: date
+
     FinancialAccount:
       oneOf:
         - $ref: "#/components/schemas/CashAccount"
         - $ref: "#/components/schemas/MobileBankingAccount"
         - $ref: "#/components/schemas/BankAccount"
+
     CashAccount:
       type: object
       properties:
         id:
           type: string
         amount:
-          type: int
+          type: number
+
     MobileBankingAccount:
       type: object
       properties:
@@ -375,9 +433,10 @@ components:
         mobileBankingService:
           $ref: "#/components/schemas/MobileBankingService"
         mobileNumber:
-          type: int
+          type: integer
         amount:
           type: number
+
     BankAccount:
       type: object
       properties:
@@ -388,21 +447,20 @@ components:
         bankName:
           $ref: "#/components/schemas/Bank"
         bankCode:
-          type: int
+          type: integer
         bankBranchCode:
-          type: int
+          type: integer
         bankAccountNumber:
-          type: int
+          type: integer
         bankAccountKey:
-          type: int
+          type: integer
         amount:
           type: number
+
     MobileBankingService:
       type: string
-      enum:
-        - AIRTEL_MONEY
-        - MVOLA
-        - ORANGE_MONEY
+      enum: [AIRTEL_MONEY, MVOLA, ORANGE_MONEY]
+
     CollectivityTransaction:
       type: object
       properties:
@@ -419,47 +477,27 @@ components:
           $ref: "#/components/schemas/FinancialAccount"
         memberDebited:
           $ref: "#/components/schemas/Member"
+
     Bank:
       type: string
-      enum:
-        - BRED
-        - MCB
-        - BMOI
-        - BOA
-        - BGFI
-        - AFG
-        - ACCES_BAQUE
-        - BAOBAB
-        - SIPEM
+      enum: [BRED, MCB, BMOI, BOA, BGFI, AFG, ACCES_BAQUE, BAOBAB, SIPEM]
+
     Gender:
       type: string
-      enum:
-        - MALE
-        - FEMALE
+      enum: [MALE, FEMALE]
+
     MemberOccupation:
       type: string
-      enum:
-        - JUNIOR
-        - SENIOR
-        - SECRETARY
-        - TREASURER
-        - VICE_PRESIDENT
-        - PRESIDENT
+      enum: [JUNIOR, SENIOR, SECRETARY, TREASURER, VICE_PRESIDENT, PRESIDENT]
+
     Frequency:
       type: string
-      enum:
-        - WEEKLY
-        - MONTHLY
-        - ANNUALLY
-        - PUNCTUALLY
+      enum: [WEEKLY, MONTHLY, ANNUALLY, PUNCTUALLY]
+
     ActivityStatus:
       type: string
-      enum:
-        - ACTIVE
-        - INACTIVE
+      enum: [ACTIVE, INACTIVE]
+
     PaymentMode:
       type: string
-      enum:
-        - CASH
-        - MOBILE_BANKING
-        - BANK_TRANSFER
+      enum: [CASH, MOBILE_BANKING, BANK_TRANSFER]
