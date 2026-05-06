@@ -1,24 +1,22 @@
 package hei.school.agriculturalapp.service;
 
-import hei.school.agriculturalapp.model.PaymentMode;
-import hei.school.agriculturalapp.repository.PaymentRepository;
+import hei.school.agriculturalapp.repository.FinancialAccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.sql.SQLException;
 
 @Component
 @RequiredArgsConstructor
 public class BankTransferStrategy implements AccountStrategy {
-    private final PaymentRepository repository;
+
+    private final FinancialAccountRepository financialAccountRepository;
 
     @Override
-    public boolean supports(PaymentMode mode) {
-        return mode == PaymentMode.BANK_TRANSFER;
+    public boolean supports(String paymentMode) {
+        return "BANK_TRANSFER".equals(paymentMode);
     }
 
     @Override
-    public void credit(String accountId, double amount) throws SQLException {
-        repository.updateBalance(accountId, amount);
+    public void credit(String accountIdentifier, Integer amount) {
+        financialAccountRepository.updateBalance(accountIdentifier, amount);
     }
 }

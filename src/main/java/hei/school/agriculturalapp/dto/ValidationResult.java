@@ -1,7 +1,6 @@
 package hei.school.agriculturalapp.dto;
 
 import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
