@@ -2,6 +2,7 @@ package hei.school.agriculturalapp.service;
 
 import hei.school.agriculturalapp.dto.CreateMember;
 import hei.school.agriculturalapp.dto.ValidationResult;
+import hei.school.agriculturalapp.exception.BadRequestException;
 import hei.school.agriculturalapp.model.Member;
 import hei.school.agriculturalapp.repository.MemberRepository;
 import hei.school.agriculturalapp.validator.MemberValidator;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,44 +22,37 @@ public class MemberService {
     private final MemberValidator validator;
 
     public List<Member> createMembers(List<CreateMember> requests) throws SQLException {
-        List<Member> createdMembers = new ArrayList<>();
-        for (CreateMember request : requests) {
-            createdMembers.add(createSingleMember(request));
+        List<Member> created = new ArrayList<>();
+        for (CreateMember req : requests) {
+            created.add(createSingleMember(req));
         }
-        return createdMembers;
+        return created;
     }
 
-    private Member createSingleMember(CreateMember request) throws SQLException {
-        ValidationResult validation = validator.validate(request);
-        if (!validation.isValid()) {
-            throw new IllegalArgumentException("Validation failed: " + validation.getErrorMessage());
-        }
-
+    private Member createSingleMember(CreateMember req) throws SQLException {
+        ValidationResult validation = validator.validate(req);
+        if (!validation.isValid()) throw new BadRequestException(validation.getErrorMessage());
         Member member = new Member();
-        member.setFirstName(request.getFirstName());
-        member.setLastName(request.getLastName());
-        member.setBirthDate(request.getBirthDate());
-        member.setGender(request.getGender());
-        member.setAddress(request.getAddress());
-        member.setProfession(request.getProfession());
-        member.setPhoneNumber(String.valueOf(request.getPhoneNumber()));
-        member.setEmail(request.getEmail());
-        member.setOccupation(request.getOccupation());
-
-        Member savedMember = memberRepository.save(member);
-
-        if (request.getReferees() != null && !request.getReferees().isEmpty()) {
-            List<String> refereeNames = new ArrayList<>();
-            List<Member> referees = memberRepository.getMembersByIds(request.getReferees());
-            for (Member referee : referees) {
-                // Stocker juste "Prénom Nom"
-                refereeNames.add(referee.getFirstName() + " " + referee.getLastName());
-            }
-            savedMember.setReferees(refereeNames);
+        member.setFirstName(req.getFirstName());
+        member.setLastName(req.getLastName());
+        member.setBirthDate(req.getBirthDate());
+        member.setGender(req.getGender());
+        member.setAddress(req.getAddress());
+        member.setProfession(req.getProfession());
+        member.setPhoneNumber(String.valueOf(req.getPhoneNumber()));
+        member.setEmail(req.getEmail());
+        member.setOccupation(req.getOccupation());
+        member.setJoinDate(LocalDate.now());
+        member.setRegistrationFeePaid(req.getRegistrationFeePaid());
+        member.setMembershipDuesPaid(req.getMembershipDuesPaid());
+        member.setAdmissionStatus("APPROVED");
+        Member saved = memberRepository.save(member);
+        if (req.getReferees() != null && !req.getReferees().isEmpty()) {
+            List<Member> referees = memberRepository.getMembersByIds(req.getReferees());
+            saved.setReferees(referees);
         } else {
-            savedMember.setReferees(new ArrayList<>());
+            saved.setReferees(new ArrayList<>());
         }
-
-        return savedMember;
+        return saved;
     }
 }

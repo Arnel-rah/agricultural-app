@@ -13,6 +13,7 @@ import java.time.LocalDate;
 @Setter
 public class MembershipFee {
     private String id;
+    private String collectivityId;
     private LocalDate eligibleFrom;
     private String frequency;
     private Double amount;

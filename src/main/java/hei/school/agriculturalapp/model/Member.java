@@ -1,6 +1,5 @@
 package hei.school.agriculturalapp.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,42 +7,26 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
 @Getter
+@Setter
 public class Member {
-    private Integer id;
+    private String id;
     private String firstName;
     private String lastName;
     private LocalDate birthDate;
     private String gender;
-    private String phoneNumber;
-    private String profession;
-    private String email;
     private String address;
+    private String profession;
+    private String phoneNumber;
+    private String email;
     private String occupation;
-    private List<String> referees;
-
-
-    @JsonIgnore
-    private boolean registrationFeePaid;
-
-    @JsonIgnore
-    private boolean membershipDuesPaid;
-
-    @JsonIgnore
+    private LocalDate joinDate;
+    private Boolean registrationFeePaid;
+    private Boolean membershipDuesPaid;
     private String admissionStatus;
-
-    @JsonIgnore
-    private Integer collectivityId;
-
-    @JsonIgnore
-    private List<Integer> refereeIds;
-
-    @JsonIgnore
-    private Integer tempId;
-
+    private List<Member> referees;
+    private List<String> refereeIds;
 }

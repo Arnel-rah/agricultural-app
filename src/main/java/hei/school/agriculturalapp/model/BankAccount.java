@@ -1,18 +1,17 @@
 package hei.school.agriculturalapp.model;
 
-import hei.school.agriculturalapp.model.BankName;
-import hei.school.agriculturalapp.model.FinancialAccount;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 public class BankAccount extends FinancialAccount {
     private String holderName;
-    private BankName bankName;
-
-    private String bankCode;
-    private String bankBranchCode;
+    private String bankName;
     private String bankAccountNumber;
-    private String bankAccountKey;
+
+    public BankAccount() {
+        super();
+        setAccountType("BANK");
+    }
 }

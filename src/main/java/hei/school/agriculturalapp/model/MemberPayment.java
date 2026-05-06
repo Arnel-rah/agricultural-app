@@ -1,13 +1,16 @@
 package hei.school.agriculturalapp.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDate;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class MemberPayment {
     private String id;
     private Double amount;
@@ -15,11 +18,12 @@ public class MemberPayment {
     private AccountSummary accountCredited;
     private LocalDate creationDate;
 
-    @Data
     @AllArgsConstructor
     @NoArgsConstructor
+    @Getter
+    @Setter
     public static class AccountSummary {
         private String id;
-        private Double amount;
+        private Double balance;
     }
 }

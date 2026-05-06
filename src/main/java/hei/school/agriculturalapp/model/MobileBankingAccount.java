@@ -1,12 +1,16 @@
 package hei.school.agriculturalapp.model;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 public class MobileBankingAccount extends FinancialAccount {
     private String holderName;
-    private MobileService serviceName;
-    private String phoneNumber;
+    private String mobileNumber;
+
+    public MobileBankingAccount() {
+        super();
+        setAccountType("MOBILE_BANKING");
+    }
 }

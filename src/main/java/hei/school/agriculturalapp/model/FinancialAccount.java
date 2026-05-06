@@ -9,10 +9,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class FinancialAccount {
+public abstract class FinancialAccount {
     private String id;
-    private String holderName;
-    private String mobileBankingService;
-    private String mobileNumber;
+    private String collectivityId;
+    private String accountType;
     private Double amount;
 }

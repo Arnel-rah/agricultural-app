@@ -2,7 +2,6 @@ package hei.school.agriculturalapp.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-
 import java.util.List;
 
 @Getter
@@ -12,6 +11,4 @@ public class CreateCollectivity {
     private List<String> members;
     private Boolean federationApproval;
     private CreateCollectivityStructure structure;
-    private String uniqueName;
-    private String officialNumber;
 }
