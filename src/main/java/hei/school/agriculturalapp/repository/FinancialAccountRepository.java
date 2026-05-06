@@ -12,14 +12,15 @@ import java.util.List;
 @Repository
 @AllArgsConstructor
 public class FinancialAccountRepository {
+
     private final Connection connection;
 
     public List<FinancialAccount> findAccountsByCollectivityAtDate(String collectivityId, LocalDate at) {
-        String sqlAccounts = "SELECT * FROM financial_account WHERE collectivity_id = ?";
+        String sqlAccounts = "SELECT id, collectivity_id, account_type, holder_name, mobile_number, balance FROM financial_account WHERE collectivity_id = ?";
         List<FinancialAccount> accounts = new ArrayList<>();
 
         try (PreparedStatement ps = connection.prepareStatement(sqlAccounts)) {
-            ps.setInt(1, Integer.parseInt(collectivityId));
+            ps.setString(1, collectivityId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     accounts.add(mapResultSetToAccount(rs));
@@ -28,51 +29,75 @@ public class FinancialAccountRepository {
         } catch (SQLException e) {
             throw new RuntimeException("Error fetching accounts: " + e.getMessage());
         }
+
         for (FinancialAccount account : accounts) {
-            account.setAmount(calculateBalanceInJava(account.getId(), at));
+            double balanceAtDate = calculateBalanceAtDate(account.getId(), at);
+            account.setAmount(balanceAtDate);
         }
         return accounts;
     }
 
-    private double calculateBalanceInJava(String accountId, LocalDate at) {
-        String sql = "SELECT amount FROM collectivity_transaction WHERE financial_account_id = ? AND payment_date <= ?";
+    private double calculateBalanceAtDate(String accountId, LocalDate at) {
+        String sql = "SELECT COALESCE(SUM(amount), 0) as total FROM collectivity_transaction WHERE financial_account_id = ? AND payment_date <= ? AND status = 'COMPLETED'";
         double sum = 0.0;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, Integer.parseInt(accountId));
+            ps.setString(1, accountId);
             ps.setDate(2, Date.valueOf(at));
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    sum += rs.getDouble("amount");
+                if (rs.next()) {
+                    sum = rs.getDouble("total");
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error in No Push-down calc: " + e.getMessage());
+            throw new RuntimeException("Error calculating balance: " + e.getMessage());
         }
         return sum;
     }
 
     private FinancialAccount mapResultSetToAccount(ResultSet rs) throws SQLException {
-        String type = rs.getString("account_type");
-        FinancialAccount account;
+        String id = rs.getString("id");
+        String collectivityId = rs.getString("collectivity_id");
+        String accountType = rs.getString("account_type");
+        String holderName = rs.getString("holder_name");
+        String mobileNumber = rs.getString("mobile_number");
+        double balance = rs.getDouble("balance");
 
-        if ("MOBILE_BANKING".equals(type) || "MOBILE_MONEY".equals(type)) {
-            MobileBankingAccount mba = new MobileBankingAccount();
-            mba.setHolderName(rs.getString("holder_name"));
-            mba.setMobileBankingService(rs.getString("service_name"));
-            mba.setMobileNumber(rs.getString("account_details"));
-            account = mba;
-        } else if ("BANK".equals(type)) {
-            BankAccount ba = new BankAccount();
-            ba.setHolderName(rs.getString("holder_name"));
-            ba.setBankName(BankName.valueOf(rs.getString("service_name")));
-            ba.setBankAccountNumber(rs.getString("account_details"));
-            account = ba;
+        if ("MOBILE_BANKING".equals(accountType)) {
+            MobileBankingAccount account = new MobileBankingAccount();
+            account.setId(id);
+            account.setCollectivityId(collectivityId);
+            account.setAccountType(accountType);
+            account.setHolderName(holderName);
+            account.setMobileNumber(mobileNumber);
+            account.setAmount(balance);
+            return account;
+        } else if ("BANK".equals(accountType)) {
+            BankAccount account = new BankAccount();
+            account.setId(id);
+            account.setCollectivityId(collectivityId);
+            account.setAccountType(accountType);
+            account.setHolderName(holderName);
+            account.setAmount(balance);
+            return account;
         } else {
-            account = new CashAccount();
+            CashAccount account = new CashAccount();
+            account.setId(id);
+            account.setCollectivityId(collectivityId);
+            account.setAccountType(accountType);
+            account.setAmount(balance);
+            return account;
         }
+    }
 
-        account.setId(String.valueOf(rs.getInt("id")));
-        return account;
+    public void updateBalance(String accountId, Integer amount) {
+        String sql = "UPDATE financial_account SET balance = balance + ? WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setDouble(1, amount);
+            stmt.setString(2, accountId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating balance: " + e.getMessage());
+        }
     }
 }
