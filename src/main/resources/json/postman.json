@@ -1,0 +1,281 @@
+{
+  "info": {
+    "name": "Agricultural Federation API",
+    "description": "API pour la Fédération Agricole de Madagascar - v0.0.7 (avec Bonus)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 - Collectivités",
+      "item": [
+        {
+          "name": "POST /collectivities - Créer une collectivité",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"location\": \"Antananarivo\",\n    \"members\": [\"C1-M1\", \"C1-M2\", \"C1-M3\", \"C1-M4\", \"C1-M5\", \"C1-M6\", \"C1-M7\", \"C1-M8\", \"C2-M1\", \"C2-M2\"],\n    \"federationApproval\": true,\n    \"structure\": {\n      \"president\": \"C1-M1\",\n      \"vicePresident\": \"C1-M2\",\n      \"treasurer\": \"C1-M4\",\n      \"secretary\": \"C1-M3\"\n    }\n  }\n]"
+            },
+            "url": { "raw": "http://localhost:8080/collectivities", "host": ["localhost"], "port": "8080", "path": ["collectivities"] }
+          }
+        },
+        {
+          "name": "GET /collectivities/{id} - Récupérer une collectivité",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "http://localhost:8080/collectivities/col-1", "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-1"] }
+          }
+        },
+        {
+          "name": "PUT /collectivities/{id}/informations - Attribuer nom et numéro",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Mpanorina\",\n  \"number\": 1\n}" },
+            "url": { "raw": "http://localhost:8080/collectivities/col-1/informations", "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-1", "informations"] }
+          }
+        },
+        {
+          "name": "GET /collectivities/{id}/membershipFees - Lister les cotisations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "http://localhost:8080/collectivities/col-1/membershipFees", "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-1", "membershipFees"] }
+          }
+        },
+        {
+          "name": "POST /collectivities/{id}/membershipFees - Créer des cotisations",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"eligibleFrom\": \"2026-01-01\",\n    \"frequency\": \"MONTHLY\",\n    \"amount\": 10000,\n    \"label\": \"Cotisation mensuelle 2026\"\n  },\n  {\n    \"eligibleFrom\": \"2026-01-01\",\n    \"frequency\": \"WEEKLY\",\n    \"amount\": 2500,\n    \"label\": \"Cotisation hebdomadaire 2026\"\n  }\n]"
+            },
+            "url": { "raw": "http://localhost:8080/collectivities/col-1/membershipFees", "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-1", "membershipFees"] }
+          }
+        },
+        {
+          "name": "GET /collectivities/{id}/transactions - Transactions sur période",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/collectivities/col-1/transactions?from=2026-01-01&to=2026-12-31",
+              "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-1", "transactions"],
+              "query": [{ "key": "from", "value": "2026-01-01" }, { "key": "to", "value": "2026-12-31" }]
+            }
+          }
+        },
+        {
+          "name": "GET /collectivities/{id}/financialAccounts - Comptes financiers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/collectivities/col-1/financialAccounts?at=2026-04-23",
+              "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-1", "financialAccounts"],
+              "query": [{ "key": "at", "value": "2026-04-23" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Membres",
+      "item": [
+        {
+          "name": "POST /members - Créer des membres",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"firstName\": \"Jean\",\n    \"lastName\": \"Rakoto\",\n    \"birthDate\": \"1990-01-01\",\n    \"gender\": \"MALE\",\n    \"address\": \"Lot Test 123 Antananarivo\",\n    \"profession\": \"Agriculteur\",\n    \"phoneNumber\": 341234567,\n    \"email\": \"jean.rakoto.nouveau@email.com\",\n    \"occupation\": \"JUNIOR\",\n    \"collectivityIdentifier\": null,\n    \"referees\": [\"C1-M1\", \"C1-M2\"],\n    \"registrationFeePaid\": true,\n    \"membershipDuesPaid\": true\n  }\n]"
+            },
+            "url": { "raw": "http://localhost:8080/members", "host": ["localhost"], "port": "8080", "path": ["members"] }
+          }
+        },
+        {
+          "name": "POST /members/{id}/payments - Enregistrer un paiement (CASH)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"amount\": 50000,\n    \"membershipFeeIdentifier\": \"cot-1\",\n    \"accountCreditedIdentifier\": \"C1-A-CASH\",\n    \"paymentMode\": \"CASH\"\n  }\n]"
+            },
+            "url": { "raw": "http://localhost:8080/members/C1-M5/payments", "host": ["localhost"], "port": "8080", "path": ["members", "C1-M5", "payments"] }
+          }
+        },
+        {
+          "name": "POST /members/{id}/payments - Enregistrer un paiement (MOBILE_BANKING)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"amount\": 40000,\n    \"membershipFeeIdentifier\": \"cot-2\",\n    \"accountCreditedIdentifier\": \"C2-A-MOBILE-1\",\n    \"paymentMode\": \"MOBILE_BANKING\"\n  }\n]"
+            },
+            "url": { "raw": "http://localhost:8080/members/C2-M7/payments", "host": ["localhost"], "port": "8080", "path": ["members", "C2-M7", "payments"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Statistiques (G et H)",
+      "item": [
+        {
+          "name": "GET /collectivites/{id}/statistics - Statistiques par membre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/collectivites/col-1/statistics?from=2026-01-01&to=2026-12-31",
+              "host": ["localhost"], "port": "8080", "path": ["collectivites", "col-1", "statistics"],
+              "query": [{ "key": "from", "value": "2026-01-01" }, { "key": "to", "value": "2026-12-31" }]
+            }
+          }
+        },
+        {
+          "name": "GET /collectivities/statistics - Statistiques globales",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/collectivities/statistics?from=2026-01-01&to=2026-12-31",
+              "host": ["localhost"], "port": "8080", "path": ["collectivities", "statistics"],
+              "query": [{ "key": "from", "value": "2026-01-01" }, { "key": "to", "value": "2026-12-31" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Bonus 1: Activités (E et F)",
+      "item": [
+        {
+          "name": "POST /collectivities/{id}/activities - Créer des activités",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"label\": \"Assemblée Générale Mensuelle\",\n    \"activityType\": \"MEETING\",\n    \"memberOccupationConcerned\": [\"PRESIDENT\", \"VICE_PRESIDENT\", \"SECRETARY\", \"TREASURER\", \"SENIOR\"],\n    \"recurrenceRule\": {\n      \"weekOrdinal\": 2,\n      \"dayOfWeek\": \"SU\"\n    }\n  },\n  {\n    \"label\": \"Formation Junior\",\n    \"activityType\": \"TRAINING\",\n    \"memberOccupationConcerned\": [\"JUNIOR\"],\n    \"recurrenceRule\": {\n      \"weekOrdinal\": 4,\n      \"dayOfWeek\": \"SA\"\n    }\n  }\n]"
+            },
+            "url": { "raw": "http://localhost:8080/collectivities/col-1/activities", "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-1", "activities"] }
+          }
+        },
+        {
+          "name": "GET /collectivities/{id}/activities - Lister les activités",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "http://localhost:8080/collectivities/col-1/activities", "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-1", "activities"] }
+          }
+        },
+        {
+          "name": "POST /collectivities/{id}/activities/{activityId}/attendance - Enregistrer présence",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  { \"memberIdentifier\": \"C1-M1\", \"attendanceStatus\": \"ATTENDED\" },\n  { \"memberIdentifier\": \"C1-M2\", \"attendanceStatus\": \"ATTENDED\" },\n  { \"memberIdentifier\": \"C1-M3\", \"attendanceStatus\": \"MISSING\" },\n  { \"memberIdentifier\": \"C1-M4\", \"attendanceStatus\": \"ATTENDED\" },\n  { \"memberIdentifier\": \"C1-M5\", \"attendanceStatus\": \"UNDEFINED\" }\n]"
+            },
+            "url": { "raw": "http://localhost:8080/collectivities/col-1/activities/act-1/attendance", "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-1", "activities", "act-1", "attendance"] }
+          }
+        },
+        {
+          "name": "GET /collectivities/{id}/activities/{activityId}/attendance - Voir les présences",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "http://localhost:8080/collectivities/col-1/activities/act-1/attendance", "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-1", "activities", "act-1", "attendance"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Bonus 2: Statistiques complètes (G et H)",
+      "item": [
+        {
+          "name": "GET /collectivites/{id}/statistics - Avec taux d'assiduité",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/collectivites/col-1/statistics?from=2026-01-01&to=2026-12-31",
+              "host": ["localhost"], "port": "8080", "path": ["collectivites", "col-1", "statistics"],
+              "query": [{ "key": "from", "value": "2026-01-01" }, { "key": "to", "value": "2026-12-31" }]
+            }
+          }
+        },
+        {
+          "name": "GET /collectivities/statistics - Avec taux d'assiduité global",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/collectivities/statistics?from=2026-01-01&to=2026-12-31",
+              "host": ["localhost"], "port": "8080", "path": ["collectivities", "statistics"],
+              "query": [{ "key": "from", "value": "2026-01-01" }, { "key": "to", "value": "2026-12-31" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Tests d'erreur",
+      "item": [
+        {
+          "name": "ERROR 404 - Collectivité non trouvée",
+          "request": { "method": "GET", "url": { "raw": "http://localhost:8080/collectivities/col-999/membershipFees", "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-999", "membershipFees"] } }
+        },
+        {
+          "name": "ERROR 400 - Paramètres from/to manquants",
+          "request": { "method": "GET", "url": { "raw": "http://localhost:8080/collectivities/col-1/transactions", "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-1", "transactions"] } }
+        },
+        {
+          "name": "ERROR 400 - Montant négatif",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "[\n  {\n    \"eligibleFrom\": \"2026-01-01\",\n    \"frequency\": \"MONTHLY\",\n    \"amount\": -10000,\n    \"label\": \"Montant invalide\"\n  }\n]" },
+            "url": { "raw": "http://localhost:8080/collectivities/col-1/membershipFees", "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-1", "membershipFees"] }
+          }
+        },
+        {
+          "name": "ERROR 400 - Fréquence invalide",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "[\n  {\n    \"eligibleFrom\": \"2026-01-01\",\n    \"frequency\": \"YEARLY\",\n    \"amount\": 10000,\n    \"label\": \"Fréquence invalide\"\n  }\n]" },
+            "url": { "raw": "http://localhost:8080/collectivities/col-1/membershipFees", "host": ["localhost"], "port": "8080", "path": ["collectivities", "col-1", "membershipFees"] }
+          }
+        },
+        {
+          "name": "ERROR 404 - Membre non trouvé",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "[\n  {\n    \"amount\": 50000,\n    \"membershipFeeIdentifier\": \"cot-1\",\n    \"accountCreditedIdentifier\": \"C1-A-CASH\",\n    \"paymentMode\": \"CASH\"\n  }\n]" },
+            "url": { "raw": "http://localhost:8080/members/C999-M999/payments", "host": ["localhost"], "port": "8080", "path": ["members", "C999-M999", "payments"] }
+          }
+        },
+        {
+          "name": "ERROR 404 - Cotisation non trouvée",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "[\n  {\n    \"amount\": 50000,\n    \"membershipFeeIdentifier\": \"cot-999\",\n    \"accountCreditedIdentifier\": \"C1-A-CASH\",\n    \"paymentMode\": \"CASH\"\n  }\n]" },
+            "url": { "raw": "http://localhost:8080/members/C1-M5/payments", "host": ["localhost"], "port": "8080", "path": ["members", "C1-M5", "payments"] }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [{ "key": "baseUrl", "value": "http://localhost:8080", "type": "string" }]
+}
