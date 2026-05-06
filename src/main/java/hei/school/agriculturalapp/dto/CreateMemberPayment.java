@@ -1,18 +1,13 @@
 package hei.school.agriculturalapp.dto;
 
-import hei.school.agriculturalapp.model.PaymentMode;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
+@Setter
 public class CreateMemberPayment {
-    private Double amount;
+    private Integer amount;
     private String membershipFeeIdentifier;
     private String accountCreditedIdentifier;
-    private PaymentMode paymentMode;
+    private String paymentMode;
 }
