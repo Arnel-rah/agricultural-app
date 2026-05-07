@@ -1,0 +1,333 @@
+openapi: "3.1.0"
+info:
+  title: "agricultural_federation_api API"
+  description: "agricultural_federation_api API"
+  version: "1.0.0"
+servers:
+  - url: "http://localhost:8080"
+paths:
+  /collectivities/{id}:
+    get:
+      summary: "GET collectivities/{id}"
+      operationId: "getCollectivityById"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+  /collectivities:
+    post:
+      summary: "POST collectivities"
+      operationId: "createCollectivity"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "array"
+              items:
+                $ref: "#/components/schemas/CreateCollectivity"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+  /collectivities/{id}/statistics:
+    get:
+      summary: "GET collectivities/{id}/statistics"
+      operationId: "getCollectivityStatistics"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "from"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+        - name: "to"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+  /collectivities/statistics:
+    get:
+      summary: "GET collectivities/statistics"
+      operationId: "getAllCollectivitiesStatistics"
+      parameters:
+        - name: "from"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+        - name: "to"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+  /collectivities/{id}/activities:
+    get:
+      summary: "GET collectivities/{id}/activities"
+      operationId: "getActivities"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+    post:
+      summary: "POST collectivities/{id}/activities"
+      operationId: "addActivities"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "array"
+              items:
+                $ref: "#/components/schemas/CreateCollectivityActivity"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+  /collectivities/{id}/activities/{activityId}/attendance:
+    post:
+      summary: "POST collectivities/{id}/activities/{activityId}/attendance"
+      operationId: "addAttendance"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "activityId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "array"
+              items:
+                $ref: "#/components/schemas/CreateActivityMemberAttendance"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+    get:
+      summary: "GET collectivities/{id}/activities/{activityId}/attendance"
+      operationId: "getAttendance"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+        - name: "activityId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+  /members:
+    post:
+      summary: "POST members"
+      operationId: "createMembers"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "array"
+              items:
+                $ref: "#/components/schemas/CreateMember"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+components:
+  schemas:
+    MonthlyRecurrenceRule:
+      type: "object"
+      properties:
+        weekOrdinal:
+          type: "integer"
+          format: "int32"
+          nullable: true
+        dayOfWeek:
+          type: "string"
+          nullable: true
+    CreateCollectivityActivity:
+      type: "object"
+      properties:
+        label:
+          type: "string"
+          nullable: true
+        activityType:
+          type: "string"
+          nullable: true
+        memberOccupationConcerned:
+          type: "array"
+          nullable: true
+          items:
+            type: "string"
+        recurrenceRule:
+          nullable: true
+          $ref: "#/components/schemas/MonthlyRecurrenceRule"
+        executiveDate:
+          type: "string"
+          format: "date"
+          nullable: true
+    CreateActivityMemberAttendance:
+      type: "object"
+      properties:
+        memberIdentifier:
+          type: "string"
+          nullable: true
+        attendanceStatus:
+          type: "string"
+          nullable: true
+    CreateCollectivityStructure:
+      type: "object"
+      properties:
+        president:
+          type: "string"
+          nullable: true
+        vicePresident:
+          type: "string"
+          nullable: true
+        treasurer:
+          type: "string"
+          nullable: true
+        secretary:
+          type: "string"
+          nullable: true
+    CreateCollectivity:
+      type: "object"
+      properties:
+        location:
+          type: "string"
+          nullable: true
+        members:
+          type: "array"
+          nullable: true
+          items:
+            type: "string"
+        federationApproval:
+          type: "boolean"
+          nullable: true
+        structure:
+          nullable: true
+          $ref: "#/components/schemas/CreateCollectivityStructure"
+    CreateMember:
+      type: "object"
+      properties:
+        collectivityIdentifier:
+          type: "string"
+          nullable: true
+        referees:
+          type: "array"
+          nullable: true
+          items:
+            type: "string"
+        registrationFeePaid:
+          type: "boolean"
+          nullable: true
+        membershipDuesPaid:
+          type: "boolean"
+          nullable: true
+        firstName:
+          type: "string"
+          nullable: true
+        lastName:
+          type: "string"
+          nullable: true
+        birthDate:
+          type: "string"
+          format: "date"
+          nullable: true
+        gender:
+          type: "string"
+          nullable: true
+          enum:
+            - "MALE"
+            - "FEMALE"
+        address:
+          type: "string"
+          nullable: true
+        profession:
+          type: "string"
+          nullable: true
+        phoneNumber:
+          type: "string"
+          nullable: true
+        email:
+          type: "string"
+          nullable: true
+        occupation:
+          type: "string"
+          nullable: true
+          enum:
+            - "JUNIOR"
+            - "SENIOR"
+            - "SECRETARY"
+            - "TREASURER"
+            - "VICE_PRESIDENT"
+            - "PRESIDENT"
