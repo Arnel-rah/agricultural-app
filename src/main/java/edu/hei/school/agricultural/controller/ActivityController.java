@@ -24,7 +24,6 @@ public class ActivityController {
 
     @GetMapping("/collectivities/{id}/activities")
     public ResponseEntity<?> getActivities(@PathVariable String id, HttpServletRequest request) {
-//        apiKeyValidator.validate(request);
         try {
             return ResponseEntity.status(OK).body(activityService.getActivities(id));
         } catch (NotFoundException e) {
@@ -38,7 +37,6 @@ public class ActivityController {
     public ResponseEntity<?> addActivities(@PathVariable String id,
                                            @RequestBody List<CreateCollectivityActivity> activities,
                                            HttpServletRequest request) {
-//        apiKeyValidator.validate(request);
         try {
             return ResponseEntity.status(OK).body(activityService.addActivities(id, activities));
         } catch (BadRequestException e) {
