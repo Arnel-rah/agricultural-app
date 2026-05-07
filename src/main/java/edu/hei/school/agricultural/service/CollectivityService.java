@@ -1,15 +1,13 @@
 package edu.hei.school.agricultural.service;
 
-import edu.hei.school.agricultural.controller.dto.CollectivityInformation;
-import edu.hei.school.agricultural.controller.dto.CollectivityLocalStatistics;
-import edu.hei.school.agricultural.controller.dto.CollectivityOverallStatistics;
-import edu.hei.school.agricultural.controller.dto.MemberDescription;
+import edu.hei.school.agricultural.controller.dto.*;
 import edu.hei.school.agricultural.entity.Collectivity;
 import edu.hei.school.agricultural.entity.Member;
 import edu.hei.school.agricultural.exception.BadRequestException;
 import edu.hei.school.agricultural.exception.NotFoundException;
 import edu.hei.school.agricultural.repository.ActivityMemberAttendanceRepository;
 import edu.hei.school.agricultural.repository.CollectivityRepository;
+import edu.hei.school.agricultural.repository.FinancialAccountRepository;
 import edu.hei.school.agricultural.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +24,7 @@ public class CollectivityService {
     private final CollectivityRepository collectivityRepository;
     private final MemberRepository memberRepository;
     private final ActivityMemberAttendanceRepository attendanceRepository;
+    private final FinancialAccountRepository financialAccountRepository;
 
     public List<Collectivity> createCollectivities(List<Collectivity> collectivities) {
         for (Collectivity collectivity : collectivities) {
@@ -39,6 +38,13 @@ public class CollectivityService {
 
     public Collectivity getCollectivityById(String id) {
         return collectivityRepository.findById(id).orElseThrow(() -> new NotFoundException("Collectivity.id= " + id + " not found"));
+    }
+
+    public List<FinancialAccountDto> getFinancialAccounts(String collectivityId, LocalDate atDate) {
+        Collectivity collectivity = collectivityRepository.findById(collectivityId)
+                .orElseThrow(() -> new NotFoundException("Collectivity.id=" + collectivityId + " not found"));
+
+        return financialAccountRepository.findByCollectivityId(collectivityId, atDate);
     }
 
     public List<CollectivityLocalStatistics> getCollectivityStatistics(String collectivityId, LocalDate from, LocalDate to) {

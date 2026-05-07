@@ -80,6 +80,20 @@ public class CollectivityController {
         }
     }
 
+    @GetMapping("/collectivities/{id}/financialAccounts")
+    public ResponseEntity<?> getFinancialAccounts(@PathVariable String id, @RequestParam(required = false) String at) {
+//        apiKeyValidator.validate(request);
+        try {
+            LocalDate atDate = at != null ? LocalDate.parse(at) : LocalDate.now();
+            return ResponseEntity.status(OK)
+                    .body(collectivityService.getFinancialAccounts(id, atDate));
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
     @GetMapping("/collectivities/statistics")
     public ResponseEntity<?> getAllCollectivitiesStatistics(
             @RequestParam String from,
