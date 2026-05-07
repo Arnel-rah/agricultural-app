@@ -9,6 +9,7 @@ import edu.hei.school.agricultural.repository.ActivityMemberAttendanceRepository
 import edu.hei.school.agricultural.repository.CollectivityRepository;
 import edu.hei.school.agricultural.repository.FinancialAccountRepository;
 import edu.hei.school.agricultural.repository.MemberRepository;
+import edu.hei.school.agricultural.repository.MembershipFeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,7 @@ public class CollectivityService {
     private final MemberRepository memberRepository;
     private final ActivityMemberAttendanceRepository attendanceRepository;
     private final FinancialAccountRepository financialAccountRepository;
+    private final MembershipFeeRepository membershipFeeRepository;
 
     public List<Collectivity> createCollectivities(List<Collectivity> collectivities) {
         for (Collectivity collectivity : collectivities) {
@@ -45,6 +47,28 @@ public class CollectivityService {
                 .orElseThrow(() -> new NotFoundException("Collectivity.id=" + collectivityId + " not found"));
 
         return financialAccountRepository.findByCollectivityId(collectivityId, atDate);
+    }
+
+    public List<MembershipFeeDto> getMembershipFees(String collectivityId) {
+        Collectivity collectivity = collectivityRepository.findById(collectivityId)
+                .orElseThrow(() -> new NotFoundException("Collectivity.id=" + collectivityId + " not found"));
+
+        return membershipFeeRepository.findByCollectivityId(collectivityId);
+    }
+
+    public List<MembershipFeeDto> createMembershipFees(String collectivityId, List<CreateMembershipFee> membershipFees) {
+        Collectivity collectivity = collectivityRepository.findById(collectivityId)
+                .orElseThrow(() -> new NotFoundException("Collectivity.id=" + collectivityId + " not found"));
+
+        List<MembershipFeeDto> result = new ArrayList<>();
+        for (CreateMembershipFee createFee : membershipFees) {
+            if (createFee.getAmount() <= 0) {
+                throw new BadRequestException("Amount must be greater than 0");
+            }
+            MembershipFeeDto fee = membershipFeeRepository.save(collectivityId, createFee);
+            result.add(fee);
+        }
+        return result;
     }
 
     public List<CollectivityLocalStatistics> getCollectivityStatistics(String collectivityId, LocalDate from, LocalDate to) {
